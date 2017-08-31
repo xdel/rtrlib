@@ -137,9 +137,7 @@ static void rtr_mgr_close_less_preferable_groups(const struct rtr_socket *sock,
 		    (current_group->preference > group->preference)) {
 			for (unsigned int j = 0;
 				j < current_group->sockets_len; j++) {
-				pthread_mutex_unlock(&config->mutex);
 				rtr_stop(current_group->sockets[j]);
-				pthread_mutex_lock(&config->mutex);
 			}
 			set_status(config, current_group, RTR_MGR_CLOSED, sock);
 		}
@@ -365,7 +363,7 @@ int rtr_mgr_init(struct rtr_mgr_config **config_out,
 	struct pfx_table *pfxt = NULL;
 	struct spki_table *spki_table = NULL;
 	struct rtr_mgr_config *config = NULL;
-	struct rtr_mgr_group *cg;
+	struct rtr_mgr_group *cg =  NULL;
 	struct rtr_mgr_group_node *group_node;
 	uint8_t last_preference = UINT8_MAX;
 
@@ -660,8 +658,6 @@ int rtr_mgr_add_group(struct rtr_mgr_config *config,
 err:
 	pthread_mutex_unlock(&config->mutex);
 
-	if (new_group_node)
-		lrtr_free(new_group_node);
 	if (new_group)
 		lrtr_free(new_group);
 
